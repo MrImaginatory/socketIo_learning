@@ -3,14 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Socket Demo</title>
-    <link rel="stylesheet" href="style.css">
-    <script type="module" src="script.js"></script>
+    <title>Document</title>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div>
-        <h1>Socket Demo</h1>
-    </div>
+    <h6 id="roomId"></h6>
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="enter message">
+        <input type="text" id="roomIdInput" placeholder="enter roomId">
+        <button type="button" id="btnSubmit">Send</button>
+    </form>
+    <script>
+        const socket = io();
+
+        const btnSubmit = document.getElementById('btnSubmit');
+        const messageInput = document.getElementById('messageInput');
+        const form = document.getElementById('messageForm');
+        const roomIdInp = document.getElementById('roomIdInput');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+            socket.emit('broadcastMessage', message);
+            messageInput.value = '';
+        });
+
+        // btnSubmit.addEventListener('click', (e) => {
+        //     e.preventDefault();
+        //     const message = messageInput.value;
+        //     socket.emit('message', message);
+        //     messageInput.value = '';
+        // })
+
+        
+
+        const browserInfo = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language
+        };
+
+        socket.on('connect', () => {
+            console.log(`Connected to the ${socket.id} server`);
+            roomId.innerHTML = socket.id;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from the server');
+        });
+
+        //receiving welcome message
+        socket.on('welcomeMessage', (data) => {
+            console.log('Received message:', data);
+        });
+
+        //receiving broadcast message
+        socket.on('broadcast_message', (data) => {
+            console.log('Received broadcast message:', data);
+        });
+
+        io.to(roomId.value).emit('privateMessage', messageInput.value);
+
+        //sending message to backend
+        // socket.emit('message', `Hello from the client `);
+    </script>
 </body>
 </html>

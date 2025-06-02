@@ -1,39 +1,63 @@
-import express from "express";
-import path from "path";
-import { Server } from "socket.io";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import express from 'express';
+import { Server } from 'socket.io';
+import {createServer} from 'http';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = 3001;
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(cors());
 
-const expressServer = app.listen(PORT, () => {
-    console.log("Server is running on port:", PORT);
-});
+const server =  createServer(app);
 
+app.use(express.static(path.join(__dirname,'public')));
+app.get('/',(req,res)=>{
+    res.send('Server is running');
+})
 
-//socketIo server
-const io = new Server(expressServer);
+const port = process.env.PORT || 3001;                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+server.listen(port,()=>{
+    console.log(`Server is running on port ${port}`);
+})
 
-io.on("connection", (socket) => {
-    console.log("A user connected",socket.id);
+const io = new Server(server);
 
+io.on("connection",(socket)=>{
+    // socket.broadcast.emit('newClient',socket.id); //sending new client to all clients except the one that connected
+    console.log(`User connected: ${socket.id}`);
+    
+    //sending message
+    socket.emit('welcomeMessage',`Welcome ${socket.id}`);
 
-    socket.emit("serverMessage", {
-        message:`test message from backend`,
-        time: new Date().toLocaleTimeString()
-    });
+    //receiving message
+    socket.on("message",(message)=>{
+        console.log(`Message from ${socket.id}: ${message}`);
+        // socket.emit('message',message);
+    })
 
-    socket.on("clientMessage", (msg) => {
-        console.log(msg.message,' received at ',msg.time);
-    });
+    //broadcasting message
+    socket.broadcast.emit('broadcast_message',` ${socket.id} has joined the server `);
 
-    socket.on("disconnect", () => {
-        console.log("A user disconnected");
-    });
-});
+    socket.on("broadcastMessage",(message)=>{
+        console.log(`Message from ${socket.id}: ${message}`);
+        socket.broadcast.emit('broadcast_message',message);
+    })
+
+    socket.on("privateMessage",({to,message})=>{
+        console.log(`Message from ${socket.id}: ${message}`);
+        io.to(to).emit('private_message',{
+            from:socket.id,
+            message
+        });
+    })
+
+    //disconnecting client
+    socket.on("disconnect",()=>{
+        console.log(`User disconnected: ${socket.id}`);
+    })
+})

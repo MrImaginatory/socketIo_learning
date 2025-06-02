@@ -4,17 +4,27 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrImaginatory/socketIo_learning.git"
   },
   "keywords": [],
-  "author": "MrImaginatory",
+  "author": "",
   "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+  "bugs": {
+    "url": "https://github.com/MrImaginatory/socketIo_learning/issues"
   },
+  "homepage": "https://github.com/MrImaginatory/socketIo_learning#readme",
+  "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
