@@ -28,7 +28,6 @@ server.listen(port,()=>{
 const io = new Server(server);
 
 io.on("connection",(socket)=>{
-    // socket.broadcast.emit('newClient',socket.id); //sending new client to all clients except the one that connected
     console.log(`User connected: ${socket.id}`);
     
     //sending message
@@ -37,7 +36,6 @@ io.on("connection",(socket)=>{
     //receiving message
     socket.on("message",(message)=>{
         console.log(`Message from ${socket.id}: ${message}`);
-        // socket.emit('message',message);
     })
 
     //broadcasting message
@@ -48,13 +46,20 @@ io.on("connection",(socket)=>{
         socket.broadcast.emit('broadcast_message',message);
     })
 
-    socket.on("privateMessage",({to,message})=>{
-        console.log(`Message from ${socket.id}: ${message}`);
-        io.to(to).emit('private_message',{
-            from:socket.id,
-            message
+    //private message
+    socket.on('privateMessage', ({ roomId, message }) => {
+        io.to(roomId).emit('privateMessage', {
+            from: socket.id,
+            room: roomId,
+            message 
         });
-    })
+    });
+
+    socket.on('joinRoom',({roomId})=>{
+        console.log(`${socket.id} is joining room ${roomId}`);
+        socket.join(roomId);
+        socket.broadcast.emit('roomJoined', `${socket.id} has joined the room ${roomId}`);
+    });
 
     //disconnecting client
     socket.on("disconnect",()=>{

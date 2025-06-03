@@ -7,35 +7,37 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <h6 id="roomId"></h6>
-    <form id="messageForm">
-        <input type="text" id="messageInput" placeholder="enter message">
-        <input type="text" id="roomIdInput" placeholder="enter roomId">
-        <button type="button" id="btnSubmit">Send</button>
+    <h6 id="socketIdDisplay"></h6>
+<form id="messageForm">
+    <input type="text" id="messageInput" placeholder="Enter message">
+    <input type="text" id="roomInput" placeholder="Enter roomId">
+    <button type="submit" id="btnMsgSubmit">Send</button>
+</form>
+
+    <h6>Join room</h6>
+    <form id="roomForm">
+        <input type="text" id="roomId" placeholder="Enter roomId">
+        <button type="submit" id="btnRoomSubmit">Join</button>
     </form>
-    <script>
+    <!-- <script>
         const socket = io();
 
-        const btnSubmit = document.getElementById('btnSubmit');
         const messageInput = document.getElementById('messageInput');
+        const roomInput = document.getElementById('roomInput');
         const form = document.getElementById('messageForm');
-        const roomIdInp = document.getElementById('roomIdInput');
+        const socketIdDisplay = document.getElementById('socketIdDisplay');
+
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const message = messageInput.value;
-            socket.emit('broadcastMessage', message);
+            const roomId = roomInput.value;
+            socket.emit('privateMessage', {
+                roomId,
+                message
+            });
             messageInput.value = '';
         });
-
-        // btnSubmit.addEventListener('click', (e) => {
-        //     e.preventDefault();
-        //     const message = messageInput.value;
-        //     socket.emit('message', message);
-        //     messageInput.value = '';
-        // })
-
-        
 
         const browserInfo = {
             userAgent: navigator.userAgent,
@@ -45,7 +47,7 @@
 
         socket.on('connect', () => {
             console.log(`Connected to the ${socket.id} server`);
-            roomId.innerHTML = socket.id;
+            // roomId.innerHTML = socket.id;
         });
 
         socket.on('disconnect', () => {
@@ -55,6 +57,7 @@
         //receiving welcome message
         socket.on('welcomeMessage', (data) => {
             console.log('Received message:', data);
+            socketIdDisplay.innerHTML = data;
         });
 
         //receiving broadcast message
@@ -62,10 +65,57 @@
             console.log('Received broadcast message:', data);
         });
 
-        io.to(roomId.value).emit('privateMessage', messageInput.value);
-
         //sending message to backend
-        // socket.emit('message', `Hello from the client `);
-    </script>
+        socket.emit('message', `Hello from the client `);
+    </script> -->
+    <script>
+    const socket = io();
+
+    const messageInput = document.getElementById('messageInput');
+    const roomInput = document.getElementById('roomInput');
+    const msgForm = document.getElementById('messageForm');
+    const socketIdDisplay = document.getElementById('socketIdDisplay');
+    const roomForm = document.getElementById('roomForm');
+    const roomIdInput = document.getElementById('roomId');
+
+    msgForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = messageInput.value;
+        const roomId = roomInput.value;
+
+        // send message to a specific room
+        socket.emit('privateMessage', {
+            roomId,
+            message
+        });
+
+        messageInput.value = '';
+    });
+
+    roomForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const joinRoom = roomIdInput.value;
+        socket.emit('joinRoom',{roomId:joinRoom});
+        roomIdInput.value = '';
+    });
+
+    socket.on('connect', () => {
+        console.log(`Connected to the ${socket.id} server`);
+        socketIdDisplay.innerText = `Your ID: ${socket.id}`;
+    });
+
+    socket.on('privateMessage', (data) => {
+        console.log('Private Message:', data);
+    });
+
+    socket.on('broadcast_message', (data) => {
+        console.log('Received broadcast message:', data);
+    });
+
+    socket.on('roomJoined',(data)=>{
+        console.log('Room Joined:',data);
+    })
+</script>
+
 </body>
 </html>
